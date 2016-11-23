@@ -282,23 +282,6 @@ app.controller('CheckoutController', function($scope, $state, $cookies, $rootSco
       $scope.total_price = shopping_cart.total_price;
     });
 
-  $scope.checkout = function() {
-    // initialize $scope.address_line_2 to nothing otherwise it will be sent as undefined and this will cause an issue when trying to insert information into the database
-    $scope.address_line_2 = "";
-    $scope.shipping_info = {
-      address: $scope.address,
-      address_line_2: $scope.address_line_2,
-      city: $scope.city,
-      state: $scope.state,
-      zip_code: $scope.zip_code,
-    };
-    EC_Factory.getCheckout($scope.shipping_info)
-      .success(function(shopping_cart) {
-        console.log("We checked out and are going to the thank you page!");
-        $state.go('thanks');
-      });
-  };
-
   $scope.checkoutPayment = function() {
     var amount = $scope.total_price;
     console.log("Clicked the pay button!");
