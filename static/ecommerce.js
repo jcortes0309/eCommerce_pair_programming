@@ -88,6 +88,7 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
   }
 
   service.addToCart = function(product_id) {
+    var addToCart = 'Add';
     var url = '/api/shopping_cart';
     console.log("Token:", $cookies.getObject('cookieData').auth_token);
     console.log("Product ID:", product_id);
@@ -98,7 +99,26 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
       data: {
         auth_token: $cookies.getObject('cookieData').auth_token,
         customer_id: $cookies.getObject('cookieData').user["id"],
-        product_id: product_id
+        product_id: product_id,
+        add_remove: addToCart
+      }
+    });
+  }
+
+  service.removeFromCart = function(product_id) {
+    var addToCart = 'Remove';
+    var url = 'api/shopping_cart';
+    console.log("Token:", $cookies.getObject('cookieData').auth_token);
+    console.log("Product ID:", product_id);
+    console.log("user info:", $cookies.getObject('cookieData').user["id"]);
+    return $http({
+      method: "POST",
+      url: url,
+      data: {
+        auth_token: $cookies.getObject('cookieData').auth_token,
+        customer_id: $cookies.getObject('cookieData').user["id"],
+        product_id: product_id,
+        add_remove: addToCart
       }
     });
   }
@@ -229,11 +249,22 @@ app.controller('LoginController', function($scope, $state, $cookies, $rootScope,
 });
 
 app.controller('ShoppingCartController', function($scope, $state, $cookies, $rootScope, EC_Factory) {
+
+  $scope.removeItem = function(product_id) {
+    console.log("LETS REMOVE ME!!");
+    EC_Factory.removeFromCart(product_id)
+      .success(function(deletedMessage) {
+        // reload the page
+        $state.reload();
+      });
+  };
+
   EC_Factory.getShoppingCart()
     .success(function(shopping_cart) {
       console.log(shopping_cart);
+      console.log("shopping_cart");
       $scope.shopping_cart = shopping_cart.shopping_cart_products;
-      $scope.total_price = shopping_cart.total_price
+      $scope.total_price = shopping_cart.total_price;
     });
 });
 
