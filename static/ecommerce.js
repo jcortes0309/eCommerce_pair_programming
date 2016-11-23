@@ -1,4 +1,4 @@
-var app = angular.module('e_commerce_app', ['ui.router', 'ngCookies'])
+var app = angular.module('e_commerce_app', ['ui.router', 'ngCookies']);
 
 app.factory('Flash', function($rootScope, $timeout) {
   function setMessage(message) {
@@ -134,7 +134,7 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
         auth_token: $cookies.getObject('cookieData').auth_token
       }
     });
-  }
+  };
 
   service.getOrderInfo = function(shippingInfo) {
     var url = '/api/shopping_cart';
@@ -145,19 +145,24 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
         auth_token: $cookies.getObject('cookieData').auth_token
       }
     });
-  }
+  };
 
-  service.getCheckout = function(shippingInfo) {
+  service.getCheckout = function(shippingInfo, token) {
+    console.log("");
+    console.log("shippingInfo: ", shippingInfo);
+    console.log("");
+    console.log("token");
     var url = "/api/shopping_cart/checkout";
     return $http({
       method: "POST",
       url: url,
       data: {
         auth_token: $cookies.getObject('cookieData').auth_token,
-        shipping_info: shippingInfo
+        shipping_info: shippingInfo,
+        stripe_token: token
       }
     });
-  }
+  };
 
   return service;
 
@@ -169,7 +174,7 @@ app.controller('HomeController', function($scope, EC_Factory) {
     .success(function(all_products) {
       $scope.all_products = all_products;
       console.log("Listing all products: ", all_products);
-    })
+    });
 
 });
 
@@ -274,12 +279,12 @@ app.controller('CheckoutController', function($scope, $state, $cookies, $rootSco
     .success(function(shopping_cart) {
       console.log("We checked out!");
       $scope.shopping_cart = shopping_cart.shopping_cart_products;
-      $scope.total_price = shopping_cart.total_price
+      $scope.total_price = shopping_cart.total_price;
     });
 
   $scope.checkout = function() {
     // initialize $scope.address_line_2 to nothing otherwise it will be sent as undefined and this will cause an issue when trying to insert information into the database
-    $scope.address_line_2 = ""
+    $scope.address_line_2 = "";
     $scope.shipping_info = {
       address: $scope.address,
       address_line_2: $scope.address_line_2,
@@ -292,7 +297,45 @@ app.controller('CheckoutController', function($scope, $state, $cookies, $rootSco
         console.log("We checked out and are going to the thank you page!");
         $state.go('thanks');
       });
-  }
+  };
+
+  $scope.checkoutPayment = function() {
+    var amount = $scope.total_price;
+    console.log("Clicked the pay button!");
+    var handler = StripeCheckout.configure({
+      // publishable key
+      key: 'pk_test_M4xhzVobbt0DMmmTqDzowTxS',
+      locale: 'auto',
+      token: function callback(token) {
+        console.log("Stripe token information: ", token);
+        var stripeToken = token.id;
+        console.log("Stripe token only", stripeToken);
+        // Make checkout API call here and send the stripe token
+        // to the back end
+        // initialize $scope.address_line_2 to nothing otherwise it will be sent as undefined and this will cause an issue when trying to insert information into the database
+        $scope.address_line_2 = "";
+        $scope.shipping_info = {
+          address: $scope.address,
+          address_line_2: $scope.address_line_2,
+          city: $scope.city,
+          state: $scope.state,
+          zip_code: $scope.zip_code,
+        };
+        EC_Factory.getCheckout($scope.shipping_info, token)
+          .success(function(shopping_cart) {
+            console.log("We checked out and are going to the thank you page!");
+            $state.go('thanks');
+          });
+      }
+    });
+
+    // this actually opens the popup modal dialog
+    handler.open({
+      name: 'My awesome store',
+      description: 'Some stuff',
+      amount: amount * 100
+    });
+  };
 
 });
 
