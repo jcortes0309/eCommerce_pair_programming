@@ -308,11 +308,11 @@ def api_checkout():
                     'total_price': total_price
                 })
             else:
-                # Should change this to an error message later
-                pass
+                # Errors are handled by Stripe
+                return "FAIL!!!"
         else:
             # Should change this to an error message later
-            pass
+            return "FAIL!!!"
 
 
 
