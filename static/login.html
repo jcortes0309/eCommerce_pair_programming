@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
-<div ng-show="!is_login">
-  <h3>Login was unsuccessful. Please try again.</h3>
+<div ng-show="is_login">
+  <h4 class="alert alert-danger text-center">Login was unsuccessful. Please try again.</h4>
 </div>
 <form ng-submit="submitLogin()" method="post">
   <div class="form-group">

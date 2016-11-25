@@ -65,8 +65,8 @@ def api_user_signup():
 
 @app.route('/api/user/login', methods=['POST'])
 def api_user_login():
-
     data = request.get_json()
+    response = {'success': False}
 
     # get email form user
     username = data['username']
@@ -79,6 +79,11 @@ def api_user_login():
     query = db.query('select * from customer where username = $1', username).dictresult()[0]
     encrypted_password = query['password']
 
+    # Delete password information from the query before assigning it to the user variable
+    del query["password"]
+    user = query
+    print "Query: %s" % query
+
     # and grab id for use later
     customer_id = query['id']
 
@@ -90,29 +95,20 @@ def api_user_login():
         # generate the authentication token using the uuid module
         token = uuid.uuid4()
         print "Login success passwords match!"
+        print "\n\nToken is: %s\n\n" % token
         db.insert(
             'auth_token', {
                 'token': token,
                 'customer_id': customer_id
             }
         )
-        return jsonify({
-            "user":
-                {
-                    'id': query['id'],
-                    'username': query['username'],
-                    'email': query['email'],
-                    'first_name': query['first_name'],
-                    'last_name': query['last_name']
-                },
-                "auth_token": token
-            })
+        response['success'] = True
+        response['user'] = user
+        response['auth_token'] = token
+        print "\n\nsuccessful response: %s\n\n" % response
+        return jsonify(response)
     else:
-        print "Login unsuccessful!!!"
-        return jsonify({
-            "status": 401,
-            "message": "You have failed!"
-        })
+        return jsonify(response), 401
 
 @app.route('/api/shopping_cart', methods=['POST'])
 def api_shopping_cart():
@@ -309,10 +305,10 @@ def api_checkout():
                 })
             else:
                 # Errors are handled by Stripe
-                return "FAIL!!!"
+                return "FAIL!!!", 400
         else:
             # Should change this to an error message later
-            return "FAIL!!!"
+            return "FAIL!!!", 400
 
 
 

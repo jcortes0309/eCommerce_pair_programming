@@ -42,7 +42,7 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
     $rootScope.factoryCookieData = null;
     $rootScope.authToken = null;
     $rootScope.user_info = null;
-  }
+  };
 
   service.signup = function(signup_data) {
     var url = '/api/user/signup';
@@ -57,7 +57,7 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
         password: signup_data.password
       }
     });
-  }
+  };
 
   service.login = function(login_data) {
     var url = '/api/user/login';
@@ -68,8 +68,8 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
         username: login_data.username,
         password: login_data.password
       }
-    })
-  }
+    });
+  };
 
   service.listAllProducts = function() {
     var url = '/api/products';
@@ -77,7 +77,7 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
       method: "GET",
       url: url
     });
-  }
+  };
 
   service.product_details = function(product_id) {
     var url = '/api/product/' + product_id;
@@ -85,25 +85,25 @@ app.factory("EC_Factory", function($http, $cookies, $rootScope) {
       method: "GET",
       url: url
     });
-  }
+  };
 
   service.addToCart = function(product_id) {
     var addToCart = 'Add';
     var url = '/api/shopping_cart';
     console.log("Token:", $cookies.getObject('cookieData').auth_token);
     console.log("Product ID:", product_id);
-    console.log("user info:", $cookies.getObject('cookieData').user["id"]);
+    console.log("user info:", $cookies.getObject('cookieData').user.id);
     return $http({
       method: "POST",
       url: url,
       data: {
         auth_token: $cookies.getObject('cookieData').auth_token,
-        customer_id: $cookies.getObject('cookieData').user["id"],
+        customer_id: $cookies.getObject('cookieData').user.id,
         product_id: product_id,
         add_remove: addToCart
       }
     });
-  }
+  };
 
   service.removeFromCart = function(product_id) {
     var addToCart = 'Remove';
@@ -217,8 +217,8 @@ app.controller('SignUpController', function($scope, $stateParams, $state, EC_Fac
         console.log("signup is: ", signup);
         // redirect to login page for new user to login after being added to db
         $state.go('login');
-      })
-  }
+      });
+  };
 
 });
 
@@ -228,28 +228,28 @@ app.controller('LoginController', function($scope, $state, $cookies, $rootScope,
     $scope.login_data = {
       username: $scope.username,
       password: $scope.password
-    }
+    };
     EC_Factory.login($scope.login_data)
       .success(function(login) {
         console.log("LOGIN DATA", login);
-        if (login.status === 401) {
-          console.log('HUGE FAIL!');
-          $scope.is_login = true;
-          $timeout(function() {
-            $scope.is_login = false;
-          }, 5000);
-        } else {
-          // store the successful returned response (user data) inside of a cookie
-          $cookies.putObject('cookieData', login);
-          // store user information in a $rootScope variable
-          $rootScope.user_info = login['user'];
-          // store token information in a $rootScope variable
-          $rootScope.authToken = login['auth_token'];
-          // redirect to home page
-          $state.go('home');
-        }
+        console.log("I'm inside the success section...");
+        // store the successful returned response (user data) inside of a cookie
+        $cookies.putObject('cookieData', login);
+        // store user information in a $rootScope variable
+        $rootScope.user_info = login.user;
+        // store token information in a $rootScope variable
+        $rootScope.authToken = login.auth_token;
+        // redirect to home page
+        $state.go('home');
+      })
+      .error(function(login) {
+        console.log("Unsuccessful login data: ", login);
+        $scope.is_login = true;
+        $timeout(function() {
+          $scope.is_login = false;
+        }, 5000);
       });
-  }
+  };
 
 });
 
@@ -293,8 +293,7 @@ app.controller('CheckoutController', function($scope, $state, $cookies, $rootSco
         console.log("Stripe token information: ", token);
         var stripeToken = token.id;
         console.log("Stripe token only", stripeToken);
-        // Make checkout API call here and send the stripe token
-        // to the back end
+        // Make checkout API call here and send the stripe token to the back end
         // initialize $scope.address_line_2 to nothing otherwise it will be sent as undefined and this will cause an issue when trying to insert information into the database
         $scope.address_line_2 = "";
         $scope.shipping_info = {
@@ -312,10 +311,10 @@ app.controller('CheckoutController', function($scope, $state, $cookies, $rootSco
       }
     });
 
-    // this actually opens the popup modal dialog
+    // this opens the popup modal dialog
     handler.open({
       name: 'My awesome store',
-      description: 'Some stuff',
+      description: 'Some stuff I sell',
       amount: amount * 100
     });
   };
